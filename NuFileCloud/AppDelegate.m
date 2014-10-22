@@ -22,6 +22,11 @@
     UINavigationController *navigationController = [splitViewController.viewControllers lastObject];
     navigationController.topViewController.navigationItem.leftBarButtonItem = splitViewController.displayModeButtonItem;
     splitViewController.delegate = self;
+
+    //self.window.tintColor = [UIColor blackColor];
+    [[UIBarButtonItem appearance]setTintColor:[UIColor whiteColor]];
+
+
     return YES;
 }
 
