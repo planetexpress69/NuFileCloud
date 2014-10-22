@@ -1,0 +1,19 @@
+PODS:
+  - FontAwesome+iOS (0.1.4)
+  - MBProgressHUD (0.9)
+  - MKNetworkKit (0.87):
+    - Reachability (~> 3.1.0)
+  - Reachability (3.1.1)
+
+DEPENDENCIES:
+  - FontAwesome+iOS
+  - MBProgressHUD
+  - MKNetworkKit
+
+SPEC CHECKSUMS:
+  FontAwesome+iOS: 816c20304edef4ca92835de669577005cbaaf261
+  MBProgressHUD: 2038dbcf3dce73215abed6001657043d53aa79a8
+  MKNetworkKit: 83e6296a8d42e98a71880424a889773654846d74
+  Reachability: 8e9635e3cb4f98e7f825e51147f677ecc694d0e7
+
+COCOAPODS: 0.34.4
