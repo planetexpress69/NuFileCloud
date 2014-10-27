@@ -18,6 +18,8 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     // Override point for customization after application launch.
+
+[UIApplication sharedApplication].statusBarStyle = UIStatusBarStyleLightContent;
     UISplitViewController *splitViewController = (UISplitViewController *)self.window.rootViewController;
     UINavigationController *navigationController = [splitViewController.viewControllers lastObject];
     navigationController.topViewController.navigationItem.leftBarButtonItem = splitViewController.displayModeButtonItem;
@@ -25,6 +27,26 @@
 
     //self.window.tintColor = [UIColor blackColor];
     [[UIBarButtonItem appearance]setTintColor:[UIColor whiteColor]];
+    [[UINavigationBar appearance]setBarTintColor:[UIColor redColor]];
+    [[UINavigationBar appearance]setTintColor:[UIColor whiteColor]];
+    [[UINavigationBar appearance]setTranslucent:NO];
+    [[UIToolbar appearance]setBarTintColor:[UIColor redColor]];
+    [[UIToolbar appearance]setTranslucent:NO];
+
+    [[UINavigationBar appearance] setTitleTextAttributes:
+     [NSDictionary dictionaryWithObjectsAndKeys:
+      [UIColor whiteColor],
+      NSForegroundColorAttributeName,
+      [UIColor whiteColor],
+      NSForegroundColorAttributeName,
+      [NSValue valueWithUIOffset:UIOffsetMake(0, -1)],
+      NSForegroundColorAttributeName,
+      /*[UIFont fontWithName:@"Arial-Bold" size:0.0],
+      NSFontAttributeName, */
+      nil]];
+
+    
+
 
 
     return YES;

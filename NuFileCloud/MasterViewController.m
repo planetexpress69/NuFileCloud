@@ -11,16 +11,26 @@
 #import "LovelyDataProvider.h"
 #import <MKNetworkKit/MKNetworkKit.h>
 #import <MBProgressHUD/MBProgressHUD.h>
+#import <FontAwesome+iOS/NSString+FontAwesome.h>
+#import "PrefsTableViewController.h"
+#import "NSString+Additions.h"
+#import "Constants.h"
 
 
 @interface MasterViewController ()
 
 @property NSMutableArray *objects;
+// ---------------------------------------------------------------------------------------------------------------------
 @property UILabel *label;
+// ---------------------------------------------------------------------------------------------------------------------
 @end
 
 @implementation MasterViewController
 
+
+// ---------------------------------------------------------------------------------------------------------------------
+#pragma mark - Init & lifecycle
+// ---------------------------------------------------------------------------------------------------------------------
 - (void)awakeFromNib
 {
     [super awakeFromNib];
@@ -30,44 +40,60 @@
     }
 }
 
+// ---------------------------------------------------------------------------------------------------------------------
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-
     self.detailViewController =
     (DetailViewController *)[[self.splitViewController.viewControllers lastObject] topViewController];
-
     [self.navigationController setToolbarHidden:NO animated:YES];
     [self setupToolbar];
 }
 
+// ---------------------------------------------------------------------------------------------------------------------
+- (void)viewDidAppear:(BOOL)animated
+{
+    [super viewDidAppear:animated];
+    [self checkForLocalCredentials];
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+#pragma mark - Visual setup
+// ---------------------------------------------------------------------------------------------------------------------
 - (void)setupToolbar
 {
     self.label = [[UILabel alloc]initWithFrame:CGRectMake(0, 0, 200, 30)];
     self.label.text = @"Initializing...";
     self.label.textColor = [UIColor whiteColor];
     self.label.textAlignment = NSTextAlignmentLeft;
+
+    NSDictionary *textAttributes = @{ NSFontAttributeName : [UIFont fontWithName: kFontAwesomeFamilyName size: 22.0f],
+                                      NSForegroundColorAttributeName : [UIColor whiteColor]
+                                      };
+
     UIBarButtonItem *labelItem = [[UIBarButtonItem alloc]initWithCustomView:self.label];
-    UIBarButtonItem *logoutItem = [[UIBarButtonItem alloc]initWithTitle:@"Logout"
+    UIBarButtonItem *logoutItem = [[UIBarButtonItem alloc]initWithTitle:@"\uf085"
                                                                   style:UIBarButtonItemStyleDone
                                                                  target:self
-                                                                 action:@selector(requestLogout:)];
+                                                                 action:@selector(showSettingsPanel:)];
+
+    [logoutItem setTitleTextAttributes:textAttributes forState:UIControlStateNormal];
+
     [self setToolbarItems:@[
-                            [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:nil],
+
                             labelItem,
+                            [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace
+                                                                          target:nil
+                                                                          action:nil],
                             logoutItem,
-                            [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:nil]
+                            [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFixedSpace
+                                                                          target:nil
+                                                                          action:nil],
+
                             ] animated:YES];
-
 }
 
-- (void)viewDidAppear:(BOOL)animated
-{
-    [super viewDidAppear:animated];
-    [self checkForLocalCredentials];
-
-}
-
+// ---------------------------------------------------------------------------------------------------------------------
 - (IBAction)requestLogout:(id)sender
 {
     [[LovelyDataProvider sharedInstance]removeCredentials];
@@ -85,6 +111,7 @@
 {
     if ([[LovelyDataProvider sharedInstance]hasCredentials]) {
         self.label.text = [[LovelyDataProvider sharedInstance]theCredentialsDict][@"userName"];
+        [self checkForLocalFeed];
     }
     else {
         [self launchCredentialsDialogPanel];
@@ -141,8 +168,10 @@
 
     [loginController addTextFieldWithConfigurationHandler:^(UITextField *textField) {
         textField.placeholder = @"eMail address";
+        textField.text = @"kautz@jakota.de";
+        textField.borderStyle = UITextBorderStyleRoundedRect;
         textField.keyboardType = UIKeyboardTypeEmailAddress;
-        textField.borderStyle = UITextBorderStyleNone;
+        //textField.borderStyle = UITextBorderStyleNone;
 
         [[NSNotificationCenter defaultCenter]addObserverForName:@"UITextFieldTextDidChangeNotification"
                                                          object:textField
@@ -154,13 +183,17 @@
 
     [loginController addTextFieldWithConfigurationHandler:^(UITextField *textField) {
         textField.placeholder = @"Password";
+        textField.text = @"Iwork4Honeywell";
         textField.secureTextEntry = YES;
     }];
 
     loginController.view.tintColor = [UIColor blackColor];
 
+
+
     [self presentViewController:loginController animated:YES completion:^{
-        //
+        NSLog(@"loginContrioller: %@", loginController);
+
     }];
 }
 
@@ -171,49 +204,94 @@
 
 - (void)validateUsername:(NSString *)userName andPassword:(NSString *)password
 {
+    self.label.text = userName;
+    [[LovelyDataProvider sharedInstance]setUserName:userName andPassword:password];
+    [self checkForLocalFeed];
+}
+
+- (void)checkForLocalFeed
+{
+    
+    if ([[LovelyDataProvider sharedInstance]hasLocalFeed]) {
+        NSLog(@"Application is ready to rumble...");
+    }
+    else {
+        [self fetchFeed];
+    }
+}
+
+- (void)fetchFeed
+{
+    NSString *SHA1 = [[LovelyDataProvider sharedInstance]SHA1];
+    NSDictionary *params = @{
+                             @"uid" : SHA1,
+                             @"foo" : [[[NSDate date]description]SHA1],
+                             };
     MBProgressHUD *hud = [MBProgressHUD showHUDAddedTo:self.view animated:YES];
     hud.mode = MBProgressHUDModeIndeterminate;
     hud.labelText = @"Loading";
 
+    NSString *sUrl = kEndpointURL;
+    MKNetworkOperation *op = [[MKNetworkOperation alloc]initWithURLString:sUrl params:params
+                                                               httpMethod:@"GET"];
 
-        NSString *sUrl = @"http://www.teambender.de/scrape.php";
-        MKNetworkOperation *op = [[MKNetworkOperation alloc]initWithURLString:sUrl params:nil
-                                                                   httpMethod:@"GET"];
+    [op addCompletionHandler:^(MKNetworkOperation *completedOperation) {
+        NSLog(@"GOT FEED");
 
-        [op addCompletionHandler:^(MKNetworkOperation *completedOperation) {
-            NSLog(@"GOT STUFF");
-            self.label.text = userName;
-            [[LovelyDataProvider sharedInstance]setUserName:userName andPassword:password];
-            [hud hide:YES];
+        NSError *parsingError;
 
-        } errorHandler:^(MKNetworkOperation *completedOperation, NSError *error) {
-            NSLog(@"error: %@", error);
-            [hud hide:YES];
-
-        }];
-
-        [op setCacheHandler:^(MKNetworkOperation *completedOperation) {
-        }];
+        NSDictionary *json = [NSJSONSerialization JSONObjectWithData:completedOperation.responseData
+                                                             options:kNilOptions
+                                                               error:&parsingError];
         
-        [op start];
-        
+        if ([[LovelyDataProvider sharedInstance]storeFeed:json]) {
+            NSLog(@"FEED WRITTEN");
+            NSDate *lastSuccessfulUpdate = [NSDate date];
+            [[NSUserDefaults standardUserDefaults]setObject:lastSuccessfulUpdate forKey:@"lastSuccessfulUpdate"];
+            [[NSUserDefaults standardUserDefaults]synchronize];
+        }
+        else {
+            NSLog(@"WRITING FEED FAILED!");
+        }
+        [hud hide:YES];
 
 
+    } errorHandler:^(MKNetworkOperation *completedOperation, NSError *error) {
+        switch (error.code) {
+            case 404:
+                NSLog(@"404 - Not found!");
+                break;
+            case 403:
+                NSLog(@"403 - Forbidden!");
+                [[LovelyDataProvider sharedInstance]removeCredentials];
+                [self launchCredentialsDialogPanel];
+                break;
+                
+            default:
+                break;
+        }
+        [hud hide:YES];
 
+    }];
 
+    [op setCacheHandler:^(MKNetworkOperation *completedOperation) {
+        NSLog(@"Cache handler...");
+    }];
+    
+    [op start];
+}
 
+- (IBAction)showSettingsPanel:(id)sender
+{
+    UIStoryboard *sb = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
+    PrefsTableViewController *vc = [sb instantiateViewControllerWithIdentifier:@"PrefsTableViewController"];
 
-
-
-
-    //NSLog(@"validating got started!");
-    //[[LovelyDataProvider sharedInstance]checkCredentials];
-    //if([userName isEqualToString:@"a"] && [password isEqualToString:@"a"]) {
-    //    NSLog(@"Niiiice!");
-    //}
-    //else {
-    //    [self launchCredentialsDialogPanel];
-    //}
+    UINavigationController *prefNavigationController = [[UINavigationController alloc]initWithRootViewController:vc];
+    prefNavigationController.modalTransitionStyle = UIModalTransitionStyleCrossDissolve;
+    prefNavigationController.modalPresentationStyle = UIModalPresentationFormSheet;
+    [self presentViewController:prefNavigationController animated:YES completion:^{
+        //
+    }];
 }
 
 @end

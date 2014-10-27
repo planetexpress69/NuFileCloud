@@ -9,13 +9,22 @@
 #import <Foundation/Foundation.h>
 
 @interface LovelyDataProvider : NSObject
+
+//extern NSString* const kCredentialsKey;
+//extern NSString* const kFeedKey;
+
 //----------------------------------------------------------------------------------------------------------------------
-@property (nonatomic, strong) NSMutableDictionary *theCredentialsDict;
+@property (nonatomic, strong) NSDictionary  *theCredentialsDict;
+@property (nonatomic, strong) NSDictionary  *theFeedDict;
 //----------------------------------------------------------------------------------------------------------------------
 + (LovelyDataProvider *)sharedInstance;
 - (BOOL)hasCredentials;
 - (void)setUserName:(NSString *)userName andPassword:(NSString *)password;
 - (void)removeCredentials;
+- (BOOL)hasLocalFeed;
+- (BOOL)storeFeed:(NSDictionary *)feed;
+- (void)removeFeedWithFile:(BOOL)removeFile;
+- (NSString *)SHA1;
 //----------------------------------------------------------------------------------------------------------------------
 
 @end
