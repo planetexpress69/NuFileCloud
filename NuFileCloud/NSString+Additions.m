@@ -9,7 +9,7 @@
 #import "NSString+Additions.h"
 #include <CommonCrypto/CommonDigest.h>
 
-@implementation NSString (Common)
+@implementation NSString (Additions)
 // ---------------------------------------------------------------------------------------------------------------------
 - (BOOL)isBlank
 {

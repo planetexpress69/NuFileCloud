@@ -16,6 +16,8 @@
 		5B41388619F7F1D600E3AE99 /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 5B41388419F7F1D600E3AE99 /* LaunchScreen.xib */; };
 		5B41389219F7F1D600E3AE99 /* NuFileCloudTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 5B41389119F7F1D600E3AE99 /* NuFileCloudTests.m */; };
 		5B41389D19F7F56F00E3AE99 /* LovelyDataProvider.m in Sources */ = {isa = PBXBuildFile; fileRef = 5B41389C19F7F56F00E3AE99 /* LovelyDataProvider.m */; };
+		5B592C9F19FFADF60090F6F9 /* UIImage+Additions.m in Sources */ = {isa = PBXBuildFile; fileRef = 5B592C9E19FFADF60090F6F9 /* UIImage+Additions.m */; };
+		5BC406511A0787510077F52C /* UpdateIntervalTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 5BC406501A0787510077F52C /* UpdateIntervalTableViewController.m */; };
 		5BD53A9719F8E66A00F17DF9 /* NSString+Additions.m in Sources */ = {isa = PBXBuildFile; fileRef = 5BD53A9619F8E66A00F17DF9 /* NSString+Additions.m */; };
 		5BE7980019F9A5A200EE38A4 /* PrefsTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 5BE797FF19F9A5A200EE38A4 /* PrefsTableViewController.m */; };
 		5BE9B6CB19F9974600223C05 /* PreferencesViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 5BE9B6CA19F9974600223C05 /* PreferencesViewController.m */; };
@@ -53,7 +55,11 @@
 		5B41389119F7F1D600E3AE99 /* NuFileCloudTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = NuFileCloudTests.m; sourceTree = "<group>"; };
 		5B41389B19F7F56F00E3AE99 /* LovelyDataProvider.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LovelyDataProvider.h; sourceTree = "<group>"; };
 		5B41389C19F7F56F00E3AE99 /* LovelyDataProvider.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LovelyDataProvider.m; sourceTree = "<group>"; };
+		5B592C9D19FFADF60090F6F9 /* UIImage+Additions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIImage+Additions.h"; sourceTree = "<group>"; };
+		5B592C9E19FFADF60090F6F9 /* UIImage+Additions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIImage+Additions.m"; sourceTree = "<group>"; };
 		5BB83D2919FAA2150053ABCB /* Constants.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Constants.h; sourceTree = "<group>"; };
+		5BC4064F1A0787510077F52C /* UpdateIntervalTableViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UpdateIntervalTableViewController.h; sourceTree = "<group>"; };
+		5BC406501A0787510077F52C /* UpdateIntervalTableViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UpdateIntervalTableViewController.m; sourceTree = "<group>"; };
 		5BD53A9519F8E66A00F17DF9 /* NSString+Additions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSString+Additions.h"; sourceTree = "<group>"; };
 		5BD53A9619F8E66A00F17DF9 /* NSString+Additions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSString+Additions.m"; sourceTree = "<group>"; };
 		5BE797FE19F9A5A200EE38A4 /* PrefsTableViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PrefsTableViewController.h; sourceTree = "<group>"; };
@@ -126,11 +132,13 @@
 				5BE9B6CA19F9974600223C05 /* PreferencesViewController.m */,
 				5BE797FE19F9A5A200EE38A4 /* PrefsTableViewController.h */,
 				5BE797FF19F9A5A200EE38A4 /* PrefsTableViewController.m */,
+				5BC4064F1A0787510077F52C /* UpdateIntervalTableViewController.h */,
+				5BC406501A0787510077F52C /* UpdateIntervalTableViewController.m */,
+				5B592C9C19FF98C10090F6F9 /* NetworkEngine */,
+				5B592C9B19FF98AE0090F6F9 /* Categories & Helpers */,
 				5B41388219F7F1D600E3AE99 /* Images.xcassets */,
 				5B41388419F7F1D600E3AE99 /* LaunchScreen.xib */,
 				5B41387219F7F1D600E3AE99 /* Supporting Files */,
-				5BD53A9519F8E66A00F17DF9 /* NSString+Additions.h */,
-				5BD53A9619F8E66A00F17DF9 /* NSString+Additions.m */,
 				5BB83D2919FAA2150053ABCB /* Constants.h */,
 			);
 			path = NuFileCloud;
@@ -160,6 +168,24 @@
 				5B41389019F7F1D600E3AE99 /* Info.plist */,
 			);
 			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		5B592C9B19FF98AE0090F6F9 /* Categories & Helpers */ = {
+			isa = PBXGroup;
+			children = (
+				5BD53A9519F8E66A00F17DF9 /* NSString+Additions.h */,
+				5BD53A9619F8E66A00F17DF9 /* NSString+Additions.m */,
+				5B592C9D19FFADF60090F6F9 /* UIImage+Additions.h */,
+				5B592C9E19FFADF60090F6F9 /* UIImage+Additions.m */,
+			);
+			name = "Categories & Helpers";
+			sourceTree = "<group>";
+		};
+		5B592C9C19FF98C10090F6F9 /* NetworkEngine */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = NetworkEngine;
 			sourceTree = "<group>";
 		};
 		9153FEC6A05E7B2CB2E891F3 /* Frameworks */ = {
@@ -306,9 +332,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				5B41389D19F7F56F00E3AE99 /* LovelyDataProvider.m in Sources */,
+				5BC406511A0787510077F52C /* UpdateIntervalTableViewController.m in Sources */,
 				5B41387819F7F1D600E3AE99 /* AppDelegate.m in Sources */,
 				5B41387B19F7F1D600E3AE99 /* MasterViewController.m in Sources */,
 				5B41387519F7F1D600E3AE99 /* main.m in Sources */,
+				5B592C9F19FFADF60090F6F9 /* UIImage+Additions.m in Sources */,
 				5BE7980019F9A5A200EE38A4 /* PrefsTableViewController.m in Sources */,
 				5B41387E19F7F1D600E3AE99 /* DetailViewController.m in Sources */,
 				5BE9B6CB19F9974600223C05 /* PreferencesViewController.m in Sources */,

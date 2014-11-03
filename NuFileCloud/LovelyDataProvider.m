@@ -62,7 +62,7 @@ NSString * const kFeedKey           = @"storedFeedDict";
     
     NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
     if ([userDefaults objectForKey:kCredentialsKey]) {
-        NSLog(@"Got credentials from userDefaults");
+        NSLog(@"Got credentials from userDefaults!");
         return ((NSDictionary *)[userDefaults objectForKey:kCredentialsKey]);
     }
     return nil;
@@ -94,7 +94,7 @@ NSString * const kFeedKey           = @"storedFeedDict";
 // ---------------------------------------------------------------------------------------------------------------------
 - (BOOL)hasCredentials
 {
-    return self.theCredentialsDict && self.theCredentialsDict.count == 2;
+    return _theCredentialsDict && _theCredentialsDict.count == 2;
 }
 
 
@@ -156,11 +156,7 @@ NSString * const kFeedKey           = @"storedFeedDict";
 - (BOOL)storeFeed:(NSDictionary *)feed
 {
     _theFeedDict                = feed;
-
-    NSLog(@"Documents Directory (neu): %@", [[[NSFileManager defaultManager] URLsForDirectory:NSDocumentDirectory inDomains:NSUserDomainMask] lastObject]);
-    NSLog(@"Documents Directory (alt): %@", [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0]);
-
-
+    
     NSFileManager *fileManager  = [NSFileManager defaultManager];
     NSString *documentsDir      = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0];
     NSString *feedDir           = [NSString stringWithFormat:@"%@%@", documentsDir, @"/feed/"];
@@ -189,6 +185,7 @@ NSString * const kFeedKey           = @"storedFeedDict";
     NSString *sCredentials = [NSString stringWithFormat:@"%@%@",
                               [_theCredentialsDict[@"userName"]lowercaseString],
                               _theCredentialsDict[@"password"]];
+    NSLog(@"sCredentials: %@", sCredentials);
     return [sCredentials SHA1];
 }
 

@@ -15,6 +15,8 @@
 #import "PrefsTableViewController.h"
 #import "NSString+Additions.h"
 #import "Constants.h"
+#import "UIImage+Additions.h"
+#import "AppDelegate.h"
 
 
 @interface MasterViewController ()
@@ -37,6 +39,10 @@
     if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
         self.clearsSelectionOnViewWillAppear = NO;
         self.preferredContentSize = CGSizeMake(320.0, 600.0);
+        NSLog(@">%@", [[LovelyDataProvider sharedInstance]theCredentialsDict]);
+        [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(checkForLocalCredentials) name:@"DidLogoutNotification" object:nil];
+        [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(updateFeed:) name:@"AppDidNoticeOldFeed" object:nil];
+
     }
 }
 
@@ -48,14 +54,28 @@
     (DetailViewController *)[[self.splitViewController.viewControllers lastObject] topViewController];
     [self.navigationController setToolbarHidden:NO animated:YES];
     [self setupToolbar];
+    [self checkForLocalCredentials];
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+- (void)viewWillAppear:(BOOL)animated
+{
+    [super viewWillAppear:animated];
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
 - (void)viewDidAppear:(BOOL)animated
 {
     [super viewDidAppear:animated];
-    [self checkForLocalCredentials];
 }
+
+// ---------------------------------------------------------------------------------------------------------------------
+- (void)didReceiveMemoryWarning
+{
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
 
 // ---------------------------------------------------------------------------------------------------------------------
 #pragma mark - Visual setup
@@ -93,20 +113,10 @@
                             ] animated:YES];
 }
 
+
 // ---------------------------------------------------------------------------------------------------------------------
-- (IBAction)requestLogout:(id)sender
-{
-    [[LovelyDataProvider sharedInstance]removeCredentials];
-    self.label.text = @"Anonymous";
-    [self launchCredentialsDialogPanel];
-}
-
-- (void)didReceiveMemoryWarning
-{
-    [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
-}
-
+#pragma mark - Visual setup
+// ---------------------------------------------------------------------------------------------------------------------
 - (void)checkForLocalCredentials
 {
     if ([[LovelyDataProvider sharedInstance]hasCredentials]) {
@@ -119,18 +129,21 @@
 }
 
 
-#pragma mark - Table View
-
+// ---------------------------------------------------------------------------------------------------------------------
+#pragma mark - UITableViewDataSource protocol methods
+// ---------------------------------------------------------------------------------------------------------------------
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
 {
     return 1;
 }
 
+// ---------------------------------------------------------------------------------------------------------------------
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
     return self.objects.count;
 }
 
+// ---------------------------------------------------------------------------------------------------------------------
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"Cell" forIndexPath:indexPath];
@@ -140,7 +153,9 @@
     return cell;
 }
 
-
+// ---------------------------------------------------------------------------------------------------------------------
+#pragma mark - Brings up the login panel
+// ---------------------------------------------------------------------------------------------------------------------
 - (void)launchCredentialsDialogPanel
 {
     UIAlertController *loginController = [UIAlertController alertControllerWithTitle:@"Who are you?"
@@ -150,9 +165,12 @@
     UIAlertAction *okAction = [UIAlertAction actionWithTitle:@"OK"
                                                        style:UIAlertActionStyleDefault
                                                      handler:^(UIAlertAction *action) {
-                                                         UITextField *userNameField = loginController.textFields.firstObject;
-                                                         UITextField *passwordField = loginController.textFields.lastObject;
-                                                         [self validateUsername:userNameField.text andPassword:passwordField.text];
+                                                         UITextField *userNameField =
+                                                         loginController.textFields.firstObject;
+                                                         UITextField *passwordField =
+                                                         loginController.textFields.lastObject;
+                                                         [self validateUsername:userNameField.text
+                                                                    andPassword:passwordField.text];
                                                      }];
     okAction.enabled = NO;
     [loginController addAction:okAction];
@@ -161,17 +179,15 @@
                                                            style:UIAlertActionStyleCancel
                                                          handler:^(UIAlertAction *action) {
                                                              NSLog(@"ForgotPassword");
-                                                             [self launchForgotPasswordDialogPanel];
+                                                             [self launchForgotPasswordDialogPanel:nil];
                                                          }];
     [loginController addAction:forgotPasswordAction];
 
-
     [loginController addTextFieldWithConfigurationHandler:^(UITextField *textField) {
         textField.placeholder = @"eMail address";
-        textField.text = @"kautz@jakota.de";
+        textField.text = kDefaultUser;
         textField.borderStyle = UITextBorderStyleRoundedRect;
         textField.keyboardType = UIKeyboardTypeEmailAddress;
-        //textField.borderStyle = UITextBorderStyleNone;
 
         [[NSNotificationCenter defaultCenter]addObserverForName:@"UITextFieldTextDidChangeNotification"
                                                          object:textField
@@ -183,25 +199,21 @@
 
     [loginController addTextFieldWithConfigurationHandler:^(UITextField *textField) {
         textField.placeholder = @"Password";
-        textField.text = @"Iwork4Honeywell";
+        textField.text = kDefaultPassword;
         textField.secureTextEntry = YES;
     }];
 
     loginController.view.tintColor = [UIColor blackColor];
 
-
-
     [self presentViewController:loginController animated:YES completion:^{
         NSLog(@"loginContrioller: %@", loginController);
-
     }];
 }
 
-- (void)launchForgotPasswordDialogPanel
-{
 
-}
-
+// ---------------------------------------------------------------------------------------------------------------------
+#pragma mark - Validate credentials by storing them and try to get the feed with
+// ---------------------------------------------------------------------------------------------------------------------
 - (void)validateUsername:(NSString *)userName andPassword:(NSString *)password
 {
     self.label.text = userName;
@@ -209,17 +221,24 @@
     [self checkForLocalFeed];
 }
 
+
+// ---------------------------------------------------------------------------------------------------------------------
+#pragma mark - Check for local feed an get one if needed
+// ---------------------------------------------------------------------------------------------------------------------
 - (void)checkForLocalFeed
 {
     
     if ([[LovelyDataProvider sharedInstance]hasLocalFeed]) {
-        NSLog(@"Application is ready to rumble...");
+        NSLog(@"Got locally stored feed!");
     }
     else {
         [self fetchFeed];
     }
 }
 
+// ---------------------------------------------------------------------------------------------------------------------
+#pragma mark - Actual fetch
+// ---------------------------------------------------------------------------------------------------------------------
 - (void)fetchFeed
 {
     NSString *SHA1 = [[LovelyDataProvider sharedInstance]SHA1];
@@ -227,13 +246,25 @@
                              @"uid" : SHA1,
                              @"foo" : [[[NSDate date]description]SHA1],
                              };
-    MBProgressHUD *hud = [MBProgressHUD showHUDAddedTo:self.view animated:YES];
+
+    AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication]delegate];
+
+    MBProgressHUD *hud = [MBProgressHUD showHUDAddedTo:appDelegate.window animated:YES];
     hud.mode = MBProgressHUDModeIndeterminate;
     hud.labelText = @"Loading";
+
+    [appDelegate setNetworkActivityIndicatorVisible:YES];
+
+
 
     NSString *sUrl = kEndpointURL;
     MKNetworkOperation *op = [[MKNetworkOperation alloc]initWithURLString:sUrl params:params
                                                                httpMethod:@"GET"];
+    NSLog(@"op: %@", op);
+
+    [op onDownloadProgressChanged:^(double progress) {
+        NSLog(@"%.2f", progress);
+    }];
 
     [op addCompletionHandler:^(MKNetworkOperation *completedOperation) {
         NSLog(@"GOT FEED");
@@ -245,10 +276,13 @@
                                                                error:&parsingError];
         
         if ([[LovelyDataProvider sharedInstance]storeFeed:json]) {
+
             NSLog(@"FEED WRITTEN");
             NSDate *lastSuccessfulUpdate = [NSDate date];
             [[NSUserDefaults standardUserDefaults]setObject:lastSuccessfulUpdate forKey:@"lastSuccessfulUpdate"];
             [[NSUserDefaults standardUserDefaults]synchronize];
+            [appDelegate setNetworkActivityIndicatorVisible:NO];
+
         }
         else {
             NSLog(@"WRITING FEED FAILED!");
@@ -275,7 +309,6 @@
     }];
 
     [op setCacheHandler:^(MKNetworkOperation *completedOperation) {
-        NSLog(@"Cache handler...");
     }];
     
     [op start];
@@ -285,13 +318,73 @@
 {
     UIStoryboard *sb = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
     PrefsTableViewController *vc = [sb instantiateViewControllerWithIdentifier:@"PrefsTableViewController"];
-
     UINavigationController *prefNavigationController = [[UINavigationController alloc]initWithRootViewController:vc];
     prefNavigationController.modalTransitionStyle = UIModalTransitionStyleCrossDissolve;
-    prefNavigationController.modalPresentationStyle = UIModalPresentationFormSheet;
+    prefNavigationController.modalPresentationStyle = UIModalPresentationFormSheet ;
     [self presentViewController:prefNavigationController animated:YES completion:^{
         //
     }];
 }
+
+- (IBAction)launchForgotPasswordDialogPanel:(id)sender
+{
+
+}
+
+- (void)updateFeed:(NSNotification *)notification
+{
+    NSString *hashedUUID = [[LovelyDataProvider sharedInstance]SHA1];
+    NSDictionary *params = @{
+                             @"uid" : hashedUUID,
+                             @"foo" : [[[NSDate date] description] SHA1],
+                             };
+
+    AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
+    [appDelegate setNetworkActivityIndicatorVisible:YES];
+
+    NSString *sUrl = kEndpointURL;
+    MKNetworkOperation *op = [[MKNetworkOperation alloc]initWithURLString:sUrl params:params
+                                                               httpMethod:@"GET"];
+    [op onDownloadProgressChanged:^(double progress) {
+        NSLog(@"%.2f", progress);
+    }];
+
+    [op addCompletionHandler:^(MKNetworkOperation *completedOperation) {
+        NSLog(@"GOT FEED");
+        NSError *parsingError;
+        NSDictionary *json = [NSJSONSerialization JSONObjectWithData:completedOperation.responseData
+                                                             options:kNilOptions
+                                                               error:&parsingError];
+        if ([[LovelyDataProvider sharedInstance]storeFeed:json]) {
+            NSLog(@"FEED WRITTEN");
+            NSDate *lastSuccessfulUpdate = [NSDate date];
+            [[NSUserDefaults standardUserDefaults]setObject:lastSuccessfulUpdate forKey:@"lastSuccessfulUpdate"];
+            [[NSUserDefaults standardUserDefaults]synchronize];
+            [appDelegate setNetworkActivityIndicatorVisible:NO];
+        }
+        else {
+            NSLog(@"WRITING FEED FAILED!");
+        }
+    } errorHandler:^(MKNetworkOperation *completedOperation, NSError *error) {
+        switch (error.code) {
+            case 404:
+                NSLog(@"404 - Not found!");
+                [appDelegate setNetworkActivityIndicatorVisible:NO];
+                break;
+            case 403:
+                NSLog(@"403 - Forbidden!");
+                [appDelegate setNetworkActivityIndicatorVisible:NO];
+                break;
+            default:
+                break;
+        }
+    }];
+
+    [op setCacheHandler:^(MKNetworkOperation *completedOperation) {
+    }];
+
+    [op start];
+}
+
 
 @end

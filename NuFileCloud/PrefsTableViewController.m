@@ -8,6 +8,7 @@
 
 #import "PrefsTableViewController.h"
 #import "LovelyDataProvider.h"
+#import "UpdateIntervalTableViewController.h"
 
 @interface PrefsTableViewController ()
 @property (nonatomic, strong) NSDictionary *userDict;
@@ -17,10 +18,10 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    
+
     // Uncomment the following line to preserve selection between presentations.
     // self.clearsSelectionOnViewWillAppear = NO;
-    
+
     // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
     // self.navigationItem.rightBarButtonItem = self.editButtonItem;
 
@@ -32,7 +33,7 @@
     self.navigationItem.leftBarButtonItem = closeItem;
 
     UIBarButtonItem *logoutItem = [[UIBarButtonItem alloc]initWithTitle:@"Logout" style:UIBarButtonItemStyleDone
-                                                                              target:self action:@selector(requestLogout:)];
+                                                                 target:self action:@selector(requestLogout:)];
 
     self.navigationItem.rightBarButtonItem = logoutItem;
 }
@@ -104,7 +105,7 @@
                 cell.textLabel.text = [NSString stringWithFormat:@"%@", self.userDict[@"lastlogin"]];
                 cell.detailTextLabel.text = @"lastlogin";
                 break;
-                
+
             default:
                 break;
         }
@@ -184,50 +185,70 @@
     }
 }
 
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    switch (indexPath.section) {
+        case 0:
+            // do nothing
+            break;
+        case 1: {
+
+            UIStoryboard *sb = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
+            UpdateIntervalTableViewController *vc = [sb instantiateViewControllerWithIdentifier:@"UpdateIntervalTableViewController"];
+            [self.navigationController pushViewController:vc animated:YES];
+        }
+            break;
+
+        default:
+            break;
+    }
+}
+
+
 
 /*
-// Override to support conditional editing of the table view.
-- (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
-    // Return NO if you do not want the specified item to be editable.
-    return YES;
-}
-*/
+ // Override to support conditional editing of the table view.
+ - (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
+ // Return NO if you do not want the specified item to be editable.
+ return YES;
+ }
+ */
 
 /*
-// Override to support editing the table view.
-- (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
-    if (editingStyle == UITableViewCellEditingStyleDelete) {
-        // Delete the row from the data source
-        [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
-    } else if (editingStyle == UITableViewCellEditingStyleInsert) {
-        // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
-    }   
-}
-*/
+ // Override to support editing the table view.
+ - (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
+ if (editingStyle == UITableViewCellEditingStyleDelete) {
+ // Delete the row from the data source
+ [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
+ } else if (editingStyle == UITableViewCellEditingStyleInsert) {
+ // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
+ }
+ }
+ */
 
 /*
-// Override to support rearranging the table view.
-- (void)tableView:(UITableView *)tableView moveRowAtIndexPath:(NSIndexPath *)fromIndexPath toIndexPath:(NSIndexPath *)toIndexPath {
-}
-*/
+ // Override to support rearranging the table view.
+ - (void)tableView:(UITableView *)tableView moveRowAtIndexPath:(NSIndexPath *)fromIndexPath toIndexPath:(NSIndexPath *)toIndexPath {
+ }
+ */
 
 /*
-// Override to support conditional rearranging of the table view.
-- (BOOL)tableView:(UITableView *)tableView canMoveRowAtIndexPath:(NSIndexPath *)indexPath {
-    // Return NO if you do not want the item to be re-orderable.
-    return YES;
-}
-*/
+ // Override to support conditional rearranging of the table view.
+ - (BOOL)tableView:(UITableView *)tableView canMoveRowAtIndexPath:(NSIndexPath *)indexPath {
+ // Return NO if you do not want the item to be re-orderable.
+ return YES;
+ }
+ */
 
 /*
-#pragma mark - Navigation
+ #pragma mark - Navigation
 
-// In a storyboard-based application, you will often want to do a little preparation before navigation
-- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
-    // Get the new view controller using [segue destinationViewController].
-    // Pass the selected object to the new view controller.
-}
-*/
+ // In a storyboard-based application, you will often want to do a little preparation before navigation
+ - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+ // Get the new view controller using [segue destinationViewController].
+ // Pass the selected object to the new view controller.
+ }
+ */
 
 - (IBAction)close:(id)sender
 {
@@ -243,12 +264,11 @@
     self.userDict = nil;
     [[LovelyDataProvider sharedInstance]removeCredentials];
     [[LovelyDataProvider sharedInstance]removeFeedWithFile:YES];
-    [[NSNotificationCenter defaultCenter]postNotificationName:@"DidLogoutNotification" object:nil];
-    [self.presentingViewController dismissViewControllerAnimated:YES
-                                                      completion:^{
-                                                          //
-                                                      }];
-
+    [self.presentingViewController dismissViewControllerAnimated:YES completion:^{
+        if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"DidLogoutNotification" object:nil];
+        }
+    }];
 }
 
 
