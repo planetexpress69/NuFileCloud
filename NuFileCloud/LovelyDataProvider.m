@@ -174,6 +174,8 @@ NSString * const kFeedKey           = @"storedFeedDict";
             NSLog(@"createError: %@", createError);
         }
     } else {
+        NSLog(@"*** Successfully wrote updated feed!");
+
         BOOL success = [_theFeedDict writeToFile:feedFile atomically:YES];
         return success;
     }

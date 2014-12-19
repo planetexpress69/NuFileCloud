@@ -7,6 +7,7 @@
 //
 
 #import "DetailViewController.h"
+#import "LovelyDataProvider.h"
 
 @interface DetailViewController ()
 
@@ -48,6 +49,10 @@
 
 - (void)viewDidAppear:(BOOL)animated
 {
+    if (![[LovelyDataProvider sharedInstance]hasCredentials]) {
+        return;
+    }
+    
     if([UIApplication sharedApplication].statusBarOrientation == UIInterfaceOrientationPortrait || [UIApplication sharedApplication].statusBarOrientation == UIInterfaceOrientationPortraitUpsideDown) {
         [self.navigationItem.leftBarButtonItem.target performSelector:self.navigationItem.leftBarButtonItem.action withObject:self.navigationItem];
     }

@@ -39,11 +39,12 @@
     if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
         self.clearsSelectionOnViewWillAppear = NO;
         self.preferredContentSize = CGSizeMake(320.0, 600.0);
-        NSLog(@">%@", [[LovelyDataProvider sharedInstance]theCredentialsDict]);
-        [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(checkForLocalCredentials) name:@"DidLogoutNotification" object:nil];
-        [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(updateFeed:) name:@"AppDidNoticeOldFeed" object:nil];
+
 
     }
+    NSLog(@">%@", [[LovelyDataProvider sharedInstance]theCredentialsDict]);
+    [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(checkForLocalCredentials) name:@"DidLogoutNotification" object:nil];
+    [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(updateFeed:) name:@"AppDidNoticeOldFeed" object:nil];
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -206,7 +207,7 @@
     loginController.view.tintColor = [UIColor blackColor];
 
     [self presentViewController:loginController animated:YES completion:^{
-        NSLog(@"loginContrioller: %@", loginController);
+        NSLog(@"loginController: %@", loginController);
     }];
 }
 
@@ -333,14 +334,13 @@
 
 - (void)updateFeed:(NSNotification *)notification
 {
+
+    NSLog(@"Got notification!");
     NSString *hashedUUID = [[LovelyDataProvider sharedInstance]SHA1];
     NSDictionary *params = @{
                              @"uid" : hashedUUID,
                              @"foo" : [[[NSDate date] description] SHA1],
                              };
-
-    AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
-    [appDelegate setNetworkActivityIndicatorVisible:YES];
 
     NSString *sUrl = kEndpointURL;
     MKNetworkOperation *op = [[MKNetworkOperation alloc]initWithURLString:sUrl params:params
@@ -350,17 +350,16 @@
     }];
 
     [op addCompletionHandler:^(MKNetworkOperation *completedOperation) {
-        NSLog(@"GOT FEED");
+        NSLog(@"Beep!");
         NSError *parsingError;
         NSDictionary *json = [NSJSONSerialization JSONObjectWithData:completedOperation.responseData
                                                              options:kNilOptions
                                                                error:&parsingError];
+
         if ([[LovelyDataProvider sharedInstance]storeFeed:json]) {
-            NSLog(@"FEED WRITTEN");
+            NSLog(@"Wrote feeed!");
             NSDate *lastSuccessfulUpdate = [NSDate date];
             [[NSUserDefaults standardUserDefaults]setObject:lastSuccessfulUpdate forKey:@"lastSuccessfulUpdate"];
-            [[NSUserDefaults standardUserDefaults]synchronize];
-            [appDelegate setNetworkActivityIndicatorVisible:NO];
         }
         else {
             NSLog(@"WRITING FEED FAILED!");
@@ -369,11 +368,9 @@
         switch (error.code) {
             case 404:
                 NSLog(@"404 - Not found!");
-                [appDelegate setNetworkActivityIndicatorVisible:NO];
                 break;
             case 403:
                 NSLog(@"403 - Forbidden!");
-                [appDelegate setNetworkActivityIndicatorVisible:NO];
                 break;
             default:
                 break;
