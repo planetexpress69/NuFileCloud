@@ -17,6 +17,7 @@
 #import "Constants.h"
 #import "UIImage+Additions.h"
 #import "AppDelegate.h"
+#import "LoginViewController.h"
 
 
 @interface MasterViewController ()
@@ -39,12 +40,15 @@
     if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
         self.clearsSelectionOnViewWillAppear = NO;
         self.preferredContentSize = CGSizeMake(320.0, 600.0);
-
-
     }
-    NSLog(@">%@", [[LovelyDataProvider sharedInstance]theCredentialsDict]);
-    [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(checkForLocalCredentials) name:@"DidLogoutNotification" object:nil];
-    [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(updateFeed:) name:@"AppDidNoticeOldFeed" object:nil];
+
+    NSLog(@">>>>>> %@", [[LovelyDataProvider sharedInstance]theCredentialsDict]);
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(checkForLocalCredentials)
+                                                 name:@"DidLogoutNotification" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(updateFeed:)
+                                                 name:@"AppDidNoticeOldFeed" object:nil];
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -55,7 +59,7 @@
     (DetailViewController *)[[self.splitViewController.viewControllers lastObject] topViewController];
     [self.navigationController setToolbarHidden:NO animated:YES];
     [self setupToolbar];
-    [self checkForLocalCredentials];
+
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -68,6 +72,7 @@
 - (void)viewDidAppear:(BOOL)animated
 {
     [super viewDidAppear:animated];
+    [self checkForLocalCredentials];
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -85,11 +90,12 @@
 {
     self.label = [[UILabel alloc]initWithFrame:CGRectMake(0, 0, 200, 30)];
     self.label.text = @"Initializing...";
-    self.label.textColor = [UIColor whiteColor];
+    self.label.textColor = WHITE;
     self.label.textAlignment = NSTextAlignmentLeft;
+    self.label.font = [UIFont fontWithName:@"helveticaNeue-Light" size:14.0f];
 
-    NSDictionary *textAttributes = @{ NSFontAttributeName : [UIFont fontWithName: kFontAwesomeFamilyName size: 22.0f],
-                                      NSForegroundColorAttributeName : [UIColor whiteColor]
+    NSDictionary *textAttributes = @{ NSFontAttributeName : [UIFont fontWithName:kFontAwesomeFamilyName size:22.0f],
+                                      NSForegroundColorAttributeName : WHITE
                                       };
 
     UIBarButtonItem *labelItem = [[UIBarButtonItem alloc]initWithCustomView:self.label];
@@ -120,6 +126,7 @@
 // ---------------------------------------------------------------------------------------------------------------------
 - (void)checkForLocalCredentials
 {
+    NSLog(@"check for local credentials");
     if ([[LovelyDataProvider sharedInstance]hasCredentials]) {
         self.label.text = [[LovelyDataProvider sharedInstance]theCredentialsDict][@"userName"];
         [self checkForLocalFeed];
@@ -159,6 +166,8 @@
 // ---------------------------------------------------------------------------------------------------------------------
 - (void)launchCredentialsDialogPanel
 {
+    /*
+
     UIAlertController *loginController = [UIAlertController alertControllerWithTitle:@"Who are you?"
                                                                              message:@"Please enter your credentials."
                                                                       preferredStyle:UIAlertControllerStyleAlert];
@@ -209,6 +218,18 @@
     [self presentViewController:loginController animated:YES completion:^{
         NSLog(@"loginController: %@", loginController);
     }];
+     
+     */
+
+    UIStoryboard *sb = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
+    LoginViewController *vc = [sb instantiateViewControllerWithIdentifier:@"LoginViewController"];
+    UINavigationController *loginNavigationController = [[UINavigationController alloc]initWithRootViewController:vc];
+    loginNavigationController.modalTransitionStyle = UIModalTransitionStyleCrossDissolve;
+    loginNavigationController.modalPresentationStyle = UIModalPresentationFormSheet ;
+    [self presentViewController:loginNavigationController animated:YES completion:^{
+        //
+    }];
+
 }
 
 

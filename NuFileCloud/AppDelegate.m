@@ -14,47 +14,37 @@
 #import <MKNetworkKit/MKNetworkKit.h>
 
 @interface AppDelegate () <UISplitViewControllerDelegate>
-
+// ---------------------------------------------------------------------------------------------------------------------
+// ---------------------------------------------------------------------------------------------------------------------
 @end
 
 @implementation AppDelegate
 
-
-- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
+// ---------------------------------------------------------------------------------------------------------------------
+#pragma mark - launching
+// ---------------------------------------------------------------------------------------------------------------------
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
+{
     // Override point for customization after application launch.
-
     [UIApplication sharedApplication].statusBarStyle = UIStatusBarStyleLightContent;
     UISplitViewController *splitViewController = (UISplitViewController *)self.window.rootViewController;
     UINavigationController *navigationController = [splitViewController.viewControllers lastObject];
     navigationController.topViewController.navigationItem.leftBarButtonItem = splitViewController.displayModeButtonItem;
     splitViewController.delegate = self;
 
-    //self.window.tintColor = [UIColor blackColor];
-    [[UIBarButtonItem appearance]setTintColor:[UIColor whiteColor]];
-    [[UINavigationBar appearance]setBarTintColor:[UIColor redColor]];
-    [[UINavigationBar appearance]setTintColor:[UIColor whiteColor]];
+    [[UIBarButtonItem appearance]setTintColor:WHITE];
+    [[UINavigationBar appearance]setBarTintColor:RED];
+    [[UINavigationBar appearance]setTintColor:WHITE];
     [[UINavigationBar appearance]setTranslucent:NO];
-    [[UIToolbar appearance]setBarTintColor:[UIColor redColor]];
+    [[UIToolbar appearance]setBarTintColor:RED];
     [[UIToolbar appearance]setTranslucent:NO];
-
-    [[UINavigationBar appearance] setTitleTextAttributes:
-     [NSDictionary dictionaryWithObjectsAndKeys:
-      [UIColor whiteColor],
-      NSForegroundColorAttributeName,
-      [UIColor whiteColor],
-      NSForegroundColorAttributeName,
-      [NSValue valueWithUIOffset:UIOffsetMake(0, -1)],
-      NSForegroundColorAttributeName,
-      /*[UIFont fontWithName:@"Arial-Bold" size:0.0],
-       NSFontAttributeName, */
-      nil]];
+    [[UINavigationBar appearance] setTitleTextAttributes:@{ NSForegroundColorAttributeName : WHITE }];
 
     NSNumber *updateInterval = [[NSUserDefaults standardUserDefaults] objectForKey:@"updateInterval"];
     if (updateInterval == nil) {
         updateInterval = @60;
         [[NSUserDefaults standardUserDefaults]setObject:updateInterval forKey:@"updateInterval"];
     }
-
     return YES;
 }
 
@@ -115,6 +105,10 @@
 
 - (BOOL)appShouldUpdate
 {
+    if (![[LovelyDataProvider sharedInstance]hasCredentials]) {
+        return false;
+    }
+
     int updateInterval = ((NSNumber *)[[NSUserDefaults standardUserDefaults]objectForKey:@"updateInterval"]).intValue;
     NSDate *now =                   [NSDate date];
     NSDate *lastSuccessfulUpdate =  [[NSUserDefaults standardUserDefaults]objectForKey:@"lastSuccessfulUpdate"];
