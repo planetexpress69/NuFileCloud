@@ -36,13 +36,20 @@
                                                                  target:self action:@selector(requestLogout:)];
 
     self.navigationItem.rightBarButtonItem = logoutItem;
+
+    // get rid of the UpdateIntervalTableViewController's back button title
+    self.navigationItem.backBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@""
+                                                                             style:UIBarButtonItemStylePlain
+                                                                            target:nil
+                                                                            action:nil];
 }
 
 - (void)viewWillAppear:(BOOL)animated
 {
     [super viewWillAppear:animated];
     self.userDict = [[LovelyDataProvider sharedInstance]theFeedDict][@"user"];
-    NSLog(@"userDict: %@", self.userDict );
+    DLog(@"userDict: %@", self.userDict);
+    [self.tableView reloadData];
 }
 
 - (void)didReceiveMemoryWarning {
@@ -112,16 +119,34 @@
         cell.selectionStyle = UITableViewCellSelectionStyleNone;
         return cell;
     }
-    else if (indexPath.section == 1){
-        UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"UpdateCell" forIndexPath:indexPath];
-        cell.textLabel.text = @"Update";
-        return cell;
+    else if (indexPath.section == 1) {
+        NSNumber *storedUpdateInterval = [[NSUserDefaults standardUserDefaults]objectForKey:@"updateInterval"];
+        NSString *updateIntervalText = nil;
+        switch (storedUpdateInterval.intValue) {
+            case 60:
+                updateIntervalText = @"Minutely";
+                break;
+            case 3600:
+                updateIntervalText = @"Hourly";
+                break;
+            case 86400:
+                updateIntervalText = @"Daily";
+                break;
+            case 604800:
+                updateIntervalText = @"Weekly";
+                break;
+            default:
+                updateIntervalText = @"Undefined";
+                break;
+        }
 
+        UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"UpdateCell" forIndexPath:indexPath];
+        cell.textLabel.text = updateIntervalText;
+        return cell;
     }
     else {
         UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"UpdateCell" forIndexPath:indexPath];
         return cell;
-
     }
 
 
@@ -176,7 +201,7 @@
             break;
 
         case 1:
-            return @"Server";
+            return @"Update interval";
             break;
 
         default:
@@ -265,7 +290,7 @@
     [[LovelyDataProvider sharedInstance]removeCredentials];
     [[LovelyDataProvider sharedInstance]removeFeedWithFile:YES];
     [self.presentingViewController dismissViewControllerAnimated:YES completion:^{
-        if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
+        if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad || 1 == 1) {
             [[NSNotificationCenter defaultCenter] postNotificationName:@"DidLogoutNotification" object:nil];
         }
     }];

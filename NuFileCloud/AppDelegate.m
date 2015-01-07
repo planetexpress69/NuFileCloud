@@ -32,13 +32,24 @@
     navigationController.topViewController.navigationItem.leftBarButtonItem = splitViewController.displayModeButtonItem;
     splitViewController.delegate = self;
 
-    [[UIBarButtonItem appearance]setTintColor:WHITE];
-    [[UINavigationBar appearance]setBarTintColor:RED];
-    [[UINavigationBar appearance]setTintColor:WHITE];
-    [[UINavigationBar appearance]setTranslucent:NO];
-    [[UIToolbar appearance]setBarTintColor:RED];
-    [[UIToolbar appearance]setTranslucent:NO];
-    [[UINavigationBar appearance] setTitleTextAttributes:@{ NSForegroundColorAttributeName : WHITE }];
+    [[UIBarButtonItem appearance] setTintColor:WHITE];
+    [[UINavigationBar appearance] setBarTintColor:RED];
+    [[UINavigationBar appearance] setTintColor:WHITE];
+    [[UINavigationBar appearance] setTranslucent:NO];
+    [[UIToolbar appearance] setBarTintColor:RED];
+    [[UIToolbar appearance] setTranslucent:NO];
+
+    [[UINavigationBar appearance] setTitleTextAttributes:@{
+                                                           NSForegroundColorAttributeName : WHITE,
+                                                           NSFontAttributeName : [UIFont fontWithName:@"HelveticaNeue-Light" size:24.0f]
+                                                           }];
+    
+    [[UIBarButtonItem appearance] setTitleTextAttributes:@{
+                                                           NSForegroundColorAttributeName : WHITE,
+                                                           NSFontAttributeName : [UIFont fontWithName:@"HelveticaNeue-Bold" size:18.0f]
+                                                           } forState:UIControlStateNormal];
+    [[UITableViewCell appearance] setTintColor:RED];
+
 
     NSNumber *updateInterval = [[NSUserDefaults standardUserDefaults] objectForKey:@"updateInterval"];
     if (updateInterval == nil) {
@@ -87,6 +98,19 @@
     }
 }
 
+
+// asks the delegate whether the first view controller should be hidden for the specified orientation
+/*
+- (BOOL)splitViewController:(UISplitViewController *)svc
+   shouldHideViewController:(UIViewController *)vc
+              inOrientation:(UIInterfaceOrientation)orientation
+{
+    // only show the master controller in landscape mode
+
+    return [[LovelyDataProvider sharedInstance]hasCredentials];
+}
+*/
+
 - (void)setNetworkActivityIndicatorVisible:(BOOL)setVisible {
     static NSInteger NumberOfCallsToSetVisible = 0;
     if (setVisible)
@@ -117,8 +141,9 @@
         [[NSUserDefaults standardUserDefaults]setObject:lastSuccessfulUpdate forKey:@"lastSuccessfulUpdate"];
     }
     NSTimeInterval diff = [now timeIntervalSinceDate:lastSuccessfulUpdate];
-    NSLog(@"Last update happened %d seconds ago. Interval is: %d.", (int)diff, updateInterval);
+    DLog(@"Last update happened %d seconds ago. Interval is: %d.", (int)diff, updateInterval);
     return diff > updateInterval;
 }
+
 
 @end

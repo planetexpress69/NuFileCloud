@@ -50,8 +50,8 @@
     }
 #endif
 
+    self.title = @"Login";
 
-    
 }
 
 - (void)didReceiveMemoryWarning {
@@ -60,14 +60,14 @@
 }
 
 /*
-#pragma mark - Navigation
+ #pragma mark - Navigation
 
-// In a storyboard-based application, you will often want to do a little preparation before navigation
-- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
-    // Get the new view controller using [segue destinationViewController].
-    // Pass the selected object to the new view controller.
-}
-*/
+ // In a storyboard-based application, you will often want to do a little preparation before navigation
+ - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+ // Get the new view controller using [segue destinationViewController].
+ // Pass the selected object to the new view controller.
+ }
+ */
 
 #pragma mark - UITextFieldDelegate protocol methods
 - (BOOL)textFieldShouldBeginEditing:(UITextField *)textField
@@ -127,83 +127,87 @@
     [[LovelyDataProvider sharedInstance]setUserName:[self.usernameTextField.text lowercaseString] andPassword:self.passwordTextField.text];
     [self.usernameTextField resignFirstResponder];
     [self.passwordTextField resignFirstResponder];
-        NSString *SHA1 = [[LovelyDataProvider sharedInstance]SHA1];
-        NSDictionary *params = @{
-                                 @"uid" : SHA1,
-                                 @"foo" : [[[NSDate date]description]SHA1],
-                                 };
+    NSString *SHA1 = [[LovelyDataProvider sharedInstance]SHA1];
+    NSDictionary *params = @{
+                             @"uid" : SHA1,
+                             @"foo" : [[[NSDate date]description]SHA1],
+                             };
 
-        AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication]delegate];
+    AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication]delegate];
 
-        MBProgressHUD *hud = [MBProgressHUD showHUDAddedTo:appDelegate.window animated:YES];
-        hud.mode = MBProgressHUDModeIndeterminate;
-        hud.labelText = @"Loading";
+    MBProgressHUD *hud = [MBProgressHUD showHUDAddedTo:appDelegate.window animated:YES];
+    hud.mode = MBProgressHUDModeIndeterminate;
+    hud.labelText = @"Loading";
 
-        [appDelegate setNetworkActivityIndicatorVisible:YES];
+    [appDelegate setNetworkActivityIndicatorVisible:YES];
 
 
 
-        NSString *sUrl = kEndpointURL;
-        MKNetworkOperation *op = [[MKNetworkOperation alloc]initWithURLString:sUrl params:params
-                                                                   httpMethod:@"GET"];
-        NSLog(@"op: %@", op);
+    NSString *sUrl = kEndpointURL;
+    MKNetworkOperation *op = [[MKNetworkOperation alloc]initWithURLString:sUrl params:params
+                                                               httpMethod:@"GET"];
+    DLog(@"op: %@", op);
 
-        [op onDownloadProgressChanged:^(double progress) {
-            NSLog(@"%.2f", progress);
-        }];
+    [op onDownloadProgressChanged:^(double progress) {
+        DLog(@"%.2f", progress);
+    }];
 
-        [op addCompletionHandler:^(MKNetworkOperation *completedOperation) {
-            NSLog(@"GOT FEED");
+    [op addCompletionHandler:^(MKNetworkOperation *completedOperation) {
+        DLog(@"GOT FEED");
 
-            NSError *parsingError;
+        NSError *parsingError;
 
-            NSDictionary *json = [NSJSONSerialization JSONObjectWithData:completedOperation.responseData
-                                                                 options:kNilOptions
-                                                                   error:&parsingError];
+        NSDictionary *json = [NSJSONSerialization JSONObjectWithData:completedOperation.responseData
+                                                             options:kNilOptions
+                                                               error:&parsingError];
 
-            if ([[LovelyDataProvider sharedInstance]storeFeed:json]) {
+        if ([[LovelyDataProvider sharedInstance]storeFeed:json]) {
 
-                NSLog(@"FEED WRITTEN");
-                NSDate *lastSuccessfulUpdate = [NSDate date];
-                [[NSUserDefaults standardUserDefaults]setObject:lastSuccessfulUpdate forKey:@"lastSuccessfulUpdate"];
-                [[NSUserDefaults standardUserDefaults]synchronize];
+            DLog(@"FEED WRITTEN");
+            NSDate *lastSuccessfulUpdate = [NSDate date];
+            [[NSUserDefaults standardUserDefaults]setObject:lastSuccessfulUpdate forKey:@"lastSuccessfulUpdate"];
+            [[NSUserDefaults standardUserDefaults]synchronize];
+            [appDelegate setNetworkActivityIndicatorVisible:NO];
+            [self.presentingViewController dismissViewControllerAnimated:YES completion:^{
+                [[NSNotificationCenter defaultCenter] postNotificationName:@"DidLoginNotification" object:nil];
+            }];
+
+        }
+        else {
+            DLog(@"WRITING FEED FAILED!");
+        }
+        [hud hide:YES];
+
+
+    } errorHandler:^(MKNetworkOperation *completedOperation, NSError *error) {
+        switch (error.code) {
+            case 404:
+                DLog(@"404 - Not found!");
+                break;
+            case 403:
+                DLog(@"403 - Forbidden!");
+                [[LovelyDataProvider sharedInstance]removeCredentials];
+                //[self launchCredentialsDialogPanel];
                 [appDelegate setNetworkActivityIndicatorVisible:NO];
-                [self.presentingViewController dismissViewControllerAnimated:YES completion:^{
-                    //
-                }];
+                break;
 
-            }
-            else {
-                NSLog(@"WRITING FEED FAILED!");
-            }
-            [hud hide:YES];
+            default:
+                break;
+        }
+        [hud hide:YES];
 
+    }];
 
-        } errorHandler:^(MKNetworkOperation *completedOperation, NSError *error) {
-            switch (error.code) {
-                case 404:
-                    NSLog(@"404 - Not found!");
-                    break;
-                case 403:
-                    NSLog(@"403 - Forbidden!");
-                    [[LovelyDataProvider sharedInstance]removeCredentials];
-                    //[self launchCredentialsDialogPanel];
-                    [appDelegate setNetworkActivityIndicatorVisible:NO];
-                    break;
-                    
-                default:
-                    break;
-            }
-            [hud hide:YES];
-            
-        }];
-        
-        [op setCacheHandler:^(MKNetworkOperation *completedOperation) {
-        }];
-        
-        [op start];
-    }
+    [op setCacheHandler:^(MKNetworkOperation *completedOperation) {
+    }];
 
+    [op start];
+}
 
+- (IBAction)openPasswordResetURL:(id)sender
+{
+    NSString *theUrl = @"http://www.honeywell-da.com/import/challenge/request/FileCloud";
+    [[UIApplication sharedApplication]openURL:[NSURL URLWithString:theUrl]];
+}
 
 @end

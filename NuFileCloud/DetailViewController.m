@@ -37,7 +37,7 @@
     }
 }
 
-/*
+
 - (void)viewDidAppear:(BOOL)animated
 {
     if (![[LovelyDataProvider sharedInstance]hasCredentials]) {
@@ -52,6 +52,5 @@
     }
 }
  
- */
 
 @end

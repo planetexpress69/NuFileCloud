@@ -32,7 +32,7 @@ static CGFloat const kJSQColorAlphaDisabled = 0.75f;
 
 - (void)jsq_setup
 {
-    NSLog(@"Beep!");
+    DLog(@"Beep!");
     self.showsTouchWhenHighlighted      = NO;
     self.adjustsImageWhenHighlighted    = NO;
     self.adjustsImageWhenDisabled       = NO;

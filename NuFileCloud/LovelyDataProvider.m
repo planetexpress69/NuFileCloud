@@ -58,11 +58,11 @@ NSString * const kFeedKey           = @"storedFeedDict";
 // ---------------------------------------------------------------------------------------------------------------------
 - (NSDictionary *)loadCredentials
 {
-    NSLog(@"loadCredentials");
+    DLog(@"loadCredentials");
     
     NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
     if ([userDefaults objectForKey:kCredentialsKey]) {
-        NSLog(@"Got credentials from userDefaults!");
+        DLog(@"Got credentials from userDefaults!");
         return ((NSDictionary *)[userDefaults objectForKey:kCredentialsKey]);
     }
     return nil;
@@ -84,7 +84,7 @@ NSString * const kFeedKey           = @"storedFeedDict";
         NSDictionary *feed = [NSDictionary dictionaryWithContentsOfFile:feedFile];
         return feed;
     }
-    NSLog(@"Feed is nil!");
+    DLog(@"Feed is nil!");
     return nil;
 }
 
@@ -147,7 +147,7 @@ NSString * const kFeedKey           = @"storedFeedDict";
 
         [fileManager removeItemAtPath:feedFile error:&removeError];
         if (removeError) {
-            NSLog(@"Error: %@", removeError);
+            DLog(@"Error: %@", removeError);
         }
 
     }
@@ -171,10 +171,10 @@ NSString * const kFeedKey           = @"storedFeedDict";
             BOOL success = [_theFeedDict writeToFile:feedFile atomically:YES];
             return success;
         } else {
-            NSLog(@"createError: %@", createError);
+            DLog(@"createError: %@", createError);
         }
     } else {
-        NSLog(@"*** Successfully wrote updated feed!");
+        DLog(@"*** Successfully wrote updated feed!");
 
         BOOL success = [_theFeedDict writeToFile:feedFile atomically:YES];
         return success;
@@ -187,7 +187,7 @@ NSString * const kFeedKey           = @"storedFeedDict";
     NSString *sCredentials = [NSString stringWithFormat:@"%@%@",
                               [_theCredentialsDict[@"userName"]lowercaseString],
                               _theCredentialsDict[@"password"]];
-    NSLog(@"sCredentials: %@", sCredentials);
+    DLog(@"sCredentials: %@", sCredentials);
     return [sCredentials SHA1];
 }
 

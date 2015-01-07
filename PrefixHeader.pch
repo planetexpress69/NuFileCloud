@@ -1,0 +1,35 @@
+//
+//  PrefixHeader.pch
+//  NuFileCloud
+//
+//  Created by Martin Kautz on 07.01.15.
+//  Copyright (c) 2015 JAKOTA Design Group. All rights reserved.
+//
+
+#ifndef NuFileCloud_PrefixHeader_pch
+#define NuFileCloud_PrefixHeader_pch
+
+// Include any system framework and library headers here that should be included in all compilation units.
+// You will also need to set the Prefix Header build setting of one or more of your targets to reference this file.
+
+#ifdef DEBUG
+#   define DLog(fmt, ...) {NSLog((@"%s [Line %d] " fmt), __PRETTY_FUNCTION__, __LINE__, ##__VA_ARGS__);}
+#   define ELog(err) {if(err) DLog(@"%@", err)}
+#else
+#   define DLog(...)
+#   define ELog(err)
+#endif
+
+// ALog always displays output regardless of the DEBUG setting
+#define ALog(fmt, ...) {NSLog((@"%s [Line %d] " fmt), __PRETTY_FUNCTION__, __LINE__, ##__VA_ARGS__);};
+
+#define WHITE               [UIColor whiteColor]
+#define RED                 [UIColor redColor]
+#define BLACK               [UIColor blackColor]
+#define CLEAR               [UIColor clearColor]
+
+// keys in nsuserdefaults
+#define ALLOWEDREGIONS      @"allowedRegions"
+
+
+#endif

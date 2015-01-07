@@ -7,6 +7,7 @@
 //
 
 #import "UpdateIntervalTableViewController.h"
+#import "Constants.h"
 
 @interface UpdateIntervalTableViewController ()
 
@@ -22,6 +23,8 @@
     
     // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
     // self.navigationItem.rightBarButtonItem = self.editButtonItem;
+    self.title = @"Update interval";
+
 }
 
 - (void)didReceiveMemoryWarning {
@@ -76,11 +79,20 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
+    /*
     NSArray *visibleCells = [tableView visibleCells];
 
     for (UITableViewCell *cell in visibleCells) {
         cell.accessoryType = UITableViewCellAccessoryNone;
     }
+     */
+
+    for (int i = 0; i < 4; i ++) {
+        NSIndexPath *indexPath = [NSIndexPath indexPathForRow:i inSection:0];
+        UITableViewCell *currentCell = [self.tableView cellForRowAtIndexPath:indexPath];
+        currentCell.accessoryType = UITableViewCellAccessoryNone;
+    }
+
     UITableViewCell *currentCell = [self.tableView cellForRowAtIndexPath:indexPath];
     currentCell.accessoryType = UITableViewCellAccessoryCheckmark;
 
@@ -148,5 +160,21 @@
     // Pass the selected object to the new view controller.
 }
 */
+
+- (CGFloat)tableView:(UITableView *)tableView heightForFooterInSection:(NSInteger)section
+{
+    return 100.0f;
+}
+
+- (UIView *)tableView:(UITableView *)tableView viewForFooterInSection:(NSInteger)section
+{
+    UITextView *footerView = [[UITextView alloc]initWithFrame:CGRectMake(0.0f, 0.0f, self.tableView.frame.size.width, 100.0f)];
+    footerView.backgroundColor = CLEAR;
+    footerView.text = @"The update interval determines how often the app is trying to check the server for new assets.";
+    footerView.textAlignment = NSTextAlignmentCenter;
+    footerView.textColor = [UIColor grayColor];
+    footerView.font = [UIFont systemFontOfSize:[UIFont smallSystemFontSize]];
+    return footerView;
+}
 
 @end

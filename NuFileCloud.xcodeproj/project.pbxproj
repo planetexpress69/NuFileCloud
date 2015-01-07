@@ -72,6 +72,7 @@
 		5BE797FF19F9A5A200EE38A4 /* PrefsTableViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PrefsTableViewController.m; sourceTree = "<group>"; };
 		5BE9B6C919F9974600223C05 /* PreferencesViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PreferencesViewController.h; sourceTree = "<group>"; };
 		5BE9B6CA19F9974600223C05 /* PreferencesViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PreferencesViewController.m; sourceTree = "<group>"; };
+		5BFA22BD1A5D8E9E00F9DDB6 /* PrefixHeader.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PrefixHeader.pch; path = ../PrefixHeader.pch; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -157,6 +158,7 @@
 		5B41387219F7F1D600E3AE99 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				5BFA22BD1A5D8E9E00F9DDB6 /* PrefixHeader.pch */,
 				5B41387319F7F1D600E3AE99 /* Info.plist */,
 				5B41387419F7F1D600E3AE99 /* main.m */,
 			);
@@ -477,6 +479,8 @@
 			baseConfigurationReference = 144E824462B9A806E7384313 /* Pods.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = PrefixHeader.pch;
 				INFOPLIST_FILE = NuFileCloud/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.1;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
@@ -489,6 +493,8 @@
 			baseConfigurationReference = 182031BC515BE05F0681517D /* Pods.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = PrefixHeader.pch;
 				INFOPLIST_FILE = NuFileCloud/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.1;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";

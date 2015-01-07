@@ -21,8 +21,9 @@
 
 
 @interface MasterViewController ()
-
+// ---------------------------------------------------------------------------------------------------------------------
 @property NSMutableArray *objects;
+@property NSMutableArray *bookmarkLists;
 // ---------------------------------------------------------------------------------------------------------------------
 @property UILabel *label;
 // ---------------------------------------------------------------------------------------------------------------------
@@ -42,22 +43,26 @@
         self.preferredContentSize = CGSizeMake(320.0, 600.0);
     }
 
-    NSLog(@">>>>>> %@", [[LovelyDataProvider sharedInstance]theCredentialsDict]);
+    DLog(@">>>>>> %@", [[LovelyDataProvider sharedInstance]theCredentialsDict]);
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(checkForLocalCredentials)
                                                  name:@"DidLogoutNotification" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(updateLabel:)
+                                                 name:@"DidLoginNotification" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(updateFeed:)
                                                  name:@"AppDidNoticeOldFeed" object:nil];
+
+    self.title = @"NuFileCloud";
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    self.detailViewController =
-    (DetailViewController *)[[self.splitViewController.viewControllers lastObject] topViewController];
-    [self.navigationController setToolbarHidden:NO animated:YES];
+    self.detailViewController = (DetailViewController *)[[self.splitViewController.viewControllers lastObject] topViewController];
+    //[self.navigationController setToolbarHidden:NO animated:NO];
     [self setupToolbar];
 
 }
@@ -126,29 +131,44 @@
 // ---------------------------------------------------------------------------------------------------------------------
 - (void)checkForLocalCredentials
 {
-    NSLog(@"check for local credentials");
+    DLog(@"check for local credentials");
     if ([[LovelyDataProvider sharedInstance]hasCredentials]) {
         self.label.text = [[LovelyDataProvider sharedInstance]theCredentialsDict][@"userName"];
         [self checkForLocalFeed];
     }
     else {
+        self.label.text = @"";
+        [self killMe];
         [self launchCredentialsDialogPanel];
     }
 }
 
+- (void)updateLabel:(NSNotification *)notification
+{
+    self.label.text = [[LovelyDataProvider sharedInstance]theCredentialsDict][@"userName"];
+    [self loadData];
+}
 
 // ---------------------------------------------------------------------------------------------------------------------
 #pragma mark - UITableViewDataSource protocol methods
 // ---------------------------------------------------------------------------------------------------------------------
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
 {
-    return 1;
+    return self.bookmarkLists ? 2 : 1;
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-    return self.objects.count;
+    switch (section) {
+        case 0:
+            return self.objects.count;
+            break;
+
+        default:
+            return 1;
+            break;
+    }
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -156,8 +176,22 @@
 {
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"Cell" forIndexPath:indexPath];
 
-    NSDate *object = self.objects[indexPath.row];
-    cell.textLabel.text = [object description];
+    switch (indexPath.section) {
+        case 0: {
+            NSString *categoryName = _objects[indexPath.row][@"title"];
+            if ([categoryName isEqualToString:@"None"]) {
+                categoryName = @"Other";
+            }
+            cell.textLabel.text = [NSString stringWithFormat:@"%@ (%d)",
+                                   categoryName,
+                                   [_objects[indexPath.row][@"num"]intValue]];
+        }
+            break;
+
+        default:
+            cell.textLabel.text = @"Lis #1";
+            break;
+    }
     return cell;
 }
 
@@ -251,7 +285,8 @@
 {
     
     if ([[LovelyDataProvider sharedInstance]hasLocalFeed]) {
-        NSLog(@"Got locally stored feed!");
+        DLog(@"Got locally stored feed!");
+        [self loadData];
     }
     else {
         [self fetchFeed];
@@ -282,14 +317,14 @@
     NSString *sUrl = kEndpointURL;
     MKNetworkOperation *op = [[MKNetworkOperation alloc]initWithURLString:sUrl params:params
                                                                httpMethod:@"GET"];
-    NSLog(@"op: %@", op);
+    DLog(@"op: %@", op);
 
     [op onDownloadProgressChanged:^(double progress) {
-        NSLog(@"%.2f", progress);
+        DLog(@"%.2f", progress);
     }];
 
     [op addCompletionHandler:^(MKNetworkOperation *completedOperation) {
-        NSLog(@"GOT FEED");
+        DLog(@"GOT FEED");
 
         NSError *parsingError;
 
@@ -299,15 +334,17 @@
         
         if ([[LovelyDataProvider sharedInstance]storeFeed:json]) {
 
-            NSLog(@"FEED WRITTEN");
+            DLog(@"FEED WRITTEN");
             NSDate *lastSuccessfulUpdate = [NSDate date];
             [[NSUserDefaults standardUserDefaults]setObject:lastSuccessfulUpdate forKey:@"lastSuccessfulUpdate"];
             [[NSUserDefaults standardUserDefaults]synchronize];
             [appDelegate setNetworkActivityIndicatorVisible:NO];
+            
+            [self loadData];
 
         }
         else {
-            NSLog(@"WRITING FEED FAILED!");
+            DLog(@"WRITING FEED FAILED!");
         }
         [hud hide:YES];
 
@@ -315,10 +352,10 @@
     } errorHandler:^(MKNetworkOperation *completedOperation, NSError *error) {
         switch (error.code) {
             case 404:
-                NSLog(@"404 - Not found!");
+                DLog(@"404 - Not found!");
                 break;
             case 403:
-                NSLog(@"403 - Forbidden!");
+                DLog(@"403 - Forbidden!");
                 [[LovelyDataProvider sharedInstance]removeCredentials];
                 [self launchCredentialsDialogPanel];
                 break;
@@ -355,8 +392,7 @@
 
 - (void)updateFeed:(NSNotification *)notification
 {
-
-    NSLog(@"Got notification!");
+    DLog(@"Got notification!");
     NSString *hashedUUID = [[LovelyDataProvider sharedInstance]SHA1];
     NSDictionary *params = @{
                              @"uid" : hashedUUID,
@@ -367,31 +403,32 @@
     MKNetworkOperation *op = [[MKNetworkOperation alloc]initWithURLString:sUrl params:params
                                                                httpMethod:@"GET"];
     [op onDownloadProgressChanged:^(double progress) {
-        NSLog(@"%.2f", progress);
+        DLog(@"%.2f", progress);
     }];
 
     [op addCompletionHandler:^(MKNetworkOperation *completedOperation) {
-        NSLog(@"Beep!");
+        DLog(@"Beep!");
         NSError *parsingError;
         NSDictionary *json = [NSJSONSerialization JSONObjectWithData:completedOperation.responseData
                                                              options:kNilOptions
                                                                error:&parsingError];
 
         if ([[LovelyDataProvider sharedInstance]storeFeed:json]) {
-            NSLog(@"Wrote feeed!");
+            DLog(@"Wrote feeed!");
             NSDate *lastSuccessfulUpdate = [NSDate date];
             [[NSUserDefaults standardUserDefaults]setObject:lastSuccessfulUpdate forKey:@"lastSuccessfulUpdate"];
+            [self loadData];
         }
         else {
-            NSLog(@"WRITING FEED FAILED!");
+            DLog(@"WRITING FEED FAILED!");
         }
     } errorHandler:^(MKNetworkOperation *completedOperation, NSError *error) {
         switch (error.code) {
             case 404:
-                NSLog(@"404 - Not found!");
+                DLog(@"404 - Not found!");
                 break;
             case 403:
-                NSLog(@"403 - Forbidden!");
+                DLog(@"403 - Forbidden!");
                 break;
             default:
                 break;
@@ -402,6 +439,176 @@
     }];
 
     [op start];
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+- (void)loadData
+{
+    _objects = [[NSMutableArray alloc]initWithCapacity:6];
+
+    NSDictionary    *jsonDict       = [[LovelyDataProvider sharedInstance]theFeedDict];
+
+
+    NSArray         *categoryArray  = jsonDict[@"payload"][@"category"];
+    NSDictionary    *categoryDict   = nil;
+    NSDictionary    *category       = nil;
+    unsigned long   numOfAssets     = 0;
+
+    for (category in categoryArray) {
+
+        NSArray *assetArray = category[@"assets"];
+        NSArray *byAllowedRegionsFilteredArray = [self filterArrayForAllowedRegions:assetArray];
+
+        NSArray *filteredArray = [self filterArrayForSelectedProperties:byAllowedRegionsFilteredArray];
+
+        NSArray *descriptorArray = [NSArray arrayWithObject:[[NSSortDescriptor alloc] initWithKey:@"webText"
+                                                                                        ascending:YES]];
+        NSArray *sortedAssetArray = [filteredArray sortedArrayUsingDescriptors:descriptorArray];
+
+        categoryDict = @{@"title"   : category[@"categoryName"],
+                         @"num"     : [NSNumber numberWithLong:sortedAssetArray.count],
+                         @"assets"  : sortedAssetArray};
+
+        numOfAssets += sortedAssetArray.count;
+
+        if (sortedAssetArray.count > 0) {
+            [_objects addObject:categoryDict];
+        }
+    }
+
+    [_objects sortUsingDescriptors:[NSArray arrayWithObject:[[NSSortDescriptor alloc] initWithKey:@"title"
+                                                                                        ascending:YES]]];
+    DLog(@"number of categories: %lu", (unsigned long)_objects.count);
+    //////self.numOfAssets = numOfAssets;
+    [self.tableView reloadData];
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+#pragma mark - Haystack filter (allowedRegions)
+//----------------------------------------------------------------------------------------------------------------------
+- (NSArray *)filterArrayForAllowedRegions:(NSArray *)anAssetArray
+{
+    NSString *sAllowedRegions = [[NSUserDefaults standardUserDefaults]objectForKey:ALLOWEDREGIONS];
+    NSArray *aAllowedRegions = [sAllowedRegions componentsSeparatedByString:@","];
+
+    NSDictionary *asset = nil;
+    NSMutableArray *filteredArray   = [[NSMutableArray alloc]initWithCapacity:1];
+
+    for (asset in anAssetArray) {
+        BOOL        shouldAddRegion         = NO;
+        NSString    *region;
+
+        for (region in aAllowedRegions) {
+            if ([asset[@"salesRegions"]containsString:region] ||
+                [asset[@"salesRegions"]isEqualToString:region]) {
+                shouldAddRegion = YES;
+            }
+        }
+
+        if (shouldAddRegion) {
+            [filteredArray addObject:asset];
+        } else {
+            // fix special case for ALL
+            if (!aAllowedRegions || [aAllowedRegions[0]isEqualToString:@""]) {
+                [filteredArray addObject:asset];
+            }
+        }
+    }
+
+    return filteredArray;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+#pragma mark - Haystack filter (chosen properties)
+//----------------------------------------------------------------------------------------------------------------------
+- (NSArray *)filterArrayForSelectedProperties:(NSArray *)anAssetArray
+{
+    NSDictionary *selectedProperties    = [[NSUserDefaults standardUserDefaults]objectForKey:@"selectedProperties"];
+
+    //DLog(@">>> /// >>> : \n\n\n%@", selectedProperties);
+
+    NSArray *aSelectedBrands            = selectedProperties[@"brands"];
+    NSArray *aSelectedLanguages         = selectedProperties[@"language"];
+    NSArray *aSelectedTypes             = selectedProperties[@"assetType"];
+
+
+    NSDictionary *asset                 = nil;
+    NSMutableArray *filteredArray       = [[NSMutableArray alloc]initWithCapacity:1];
+
+    for (asset in anAssetArray) {
+
+        BOOL        shouldAddBrand      = NO;
+        BOOL        shouldAddLanguage   = NO;
+        BOOL        shouldAddType       = NO;
+
+        NSString    *brand              = nil;
+        NSString    *language           = nil;
+        NSString    *type               = nil;
+
+        for (brand in aSelectedBrands) {
+            if ([asset[@"brands"]containsString:brand] || [asset[@"brands"]isEqualToString:brand]) {
+                shouldAddBrand = YES;
+            }
+        }
+
+        for (language in aSelectedLanguages) {
+            if ([asset[@"language"]containsString:language] || [asset[@"language"]isEqualToString:language]) {
+                shouldAddLanguage = YES;
+            }
+        }
+
+        for (type in aSelectedTypes) {
+            if ([asset[@"assetType"]containsString:type] || [asset[@"assetType"]isEqualToString:type]) {
+                shouldAddType = YES;
+            }
+        }
+
+        if (shouldAddBrand && shouldAddLanguage && shouldAddType) {
+            [filteredArray addObject:asset];
+        } else {
+            if (!selectedProperties) {
+                [filteredArray addObject:asset];
+            }
+        }
+    }
+    return filteredArray;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+-(void)killMe
+{
+    _objects = nil;
+    [self.tableView reloadData];
+}
+
+- (void)storeAllowedRegions:(NSString *)regions
+{
+
+#pragma mark TODO add special case for ALL
+
+    NSString *storedRegions = [[NSUserDefaults standardUserDefaults]objectForKey:ALLOWEDREGIONS];
+
+    if (!storedRegions)
+    {
+        // nor regions yet, so store unconditional
+        [[NSUserDefaults standardUserDefaults]setObject:regions forKey:ALLOWEDREGIONS];
+    }
+    else
+    {
+        // we do have some, so compare
+        if ([storedRegions isEqualToString:regions])
+        {
+            // do nothing
+        }
+        else
+        {
+            [[NSUserDefaults standardUserDefaults]setObject:regions forKey:ALLOWEDREGIONS];
+            DLog(@"Regions for user changed from %@ to %@", storedRegions, regions);
+            //////[self triggerReload:[NSNotification notificationWithName:@"AllowedRegionsHasChangedNotification" object:nil]];
+
+        }
+    }
+    // we send out a notification to inform the viewcontroller to reload the data
 }
 
 
